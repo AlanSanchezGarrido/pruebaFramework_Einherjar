@@ -1,0 +1,32 @@
+[
+  {
+    "postfix": "app",
+    "description": "append",
+    "template": "${expr} = append(${expr},$0)"
+  },
+  {
+    "postfix": "forlen",
+    "description": "for loop",
+    "template": "for i:=0;i<len(${expr});i++{\n\t$0\n}"
+  },
+  {
+    "postfix": "nil",
+    "description": "nil check",
+    "template": "if ${expr} == nil {}"
+  },
+  {
+    "postfix": "notnil",
+    "description": "not nil check",
+    "template": "if ${expr} != nil {}"
+  },
+  {
+    "postfix": "print",
+    "description": "fmt.Println",
+    "template": "fmt.Println(${expr})"
+  },
+  {
+    "postfix": "err",
+    "description": "error check",
+    "template": "if err := ${expr}; err != nil {\n\treturn err\n}"
+  }
+]
