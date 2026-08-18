@@ -6,7 +6,7 @@ type Customer struct {
 	ID        string
 	Name      string
 	LastName  string
-	CellPhone int
+	CellPhone string
 	Email     string
 	Address    string
 	CreatedAt time.Timer
