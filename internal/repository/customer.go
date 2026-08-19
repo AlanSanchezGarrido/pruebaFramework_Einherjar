@@ -27,7 +27,7 @@ func NewCustomer(db postgres.Provider) Customer {
 }
 
 func (c *customer)Create(ctx context.Context, t model.Customer)error  {
-	const q = `INSERT INTO customers (id,name,lastname,cellphone,email,address,created_at,updated_at) VALUE (?,?,?,?,?,?,?,?)`
+	const q = `INSERT INTO customers (id,name,lastname,cellphone,email,address,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)`
 
 	_,err := c.db.GetExecutor(ctx).Exec(ctx,q,t.ID,t.Name,t.LastName,t.CellPhone,t.Email,t.Address,t.CreatedAt,t.UpdatedAt)
 	if err!= nil {
@@ -37,7 +37,7 @@ func (c *customer)Create(ctx context.Context, t model.Customer)error  {
 }
 
 func(c *customer)List(ctx context.Context)([]model.Customer,error) {
-	const q = `SELECT (id,name,lastname,cellphone,email,address,created_at,updated_at) FROM customers ORDER BY DESC`
+	const q = `SELECT id,name,lastname,cellphone,email,address,created_at,updated_at FROM customers ORDER BY created_at DESC`
 	
 	rows,err := c.db.GetExecutor(ctx).Query(ctx,q)
 	
@@ -73,7 +73,7 @@ func (c *customer)Get(ctx context.Context,id string) (model.Customer, error)  {
 }
 
 func (c *customer)Updated(ctx context.Context,t model.Customer) error  {
-	const q=`UPDATE customers SET name=?,lastname=?,cellphone=?,email=?,address=?,update_at=? WHERE id=?`
+	const q=`UPDATE customers SET name=?,lastname=?,cellphone=?,email=?,address=?,updated_at=? WHERE id=?`
 
 	_,err := c.db.GetExecutor(ctx).Exec(ctx,q,t.Name,t.LastName,t.CellPhone,t.Email,t.Address,t.UpdatedAt)
 	if err!=nil {

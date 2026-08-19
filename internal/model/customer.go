@@ -9,7 +9,7 @@ type Customer struct {
 	CellPhone string
 	Email     string
 	Address    string
-	CreatedAt time.Timer
-	UpdatedAt time.Timer
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
