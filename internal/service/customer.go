@@ -22,8 +22,8 @@ type Customer interface{
 	Create(ctx context.Context, t model.Customer)(model.Customer,error)
 	List(ctx context.Context)([]model.Customer,error)
 	Get(ctx context.Context, id string)(model.Customer, error)
-	Updated(ctx context.Context,t model.Customer)(model.Customer,error)
-	Deleted(ctx context.Context,id string)error
+	Update(ctx context.Context,t model.Customer)(model.Customer,error)
+	Delete(ctx context.Context,id string)error
 
 }
 
@@ -62,7 +62,7 @@ func (c *customer) Create(ctx context.Context, t model.Customer)(model.Customer,
 		return model.Customer{},err
 	}
 
-	c.logger.Info("Customer creado","customer_id",t.ID)
+	c.logger.Info("Customer creado","customer_id",custom.ID)
 	return custom,nil
 }
 
@@ -83,7 +83,7 @@ func (c *customer) Get(ctx context.Context,id string) (model.Customer, error)  {
 // Fíjense que adentro del closure se usa el ctx del parámetro (el que sombrea al
 // de afuera): ese trae la transacción inyectada. Usar el de afuera te saca de la
 // transacción sin que nada truene, y ese bug no se ve.
-func (c *customer) Updated(ctx context.Context,t model.Customer)(model.Customer, error)  {
+func (c *customer) Update(ctx context.Context,t model.Customer)(model.Customer, error)  {
 	cus,err:= CleanInput(t)
 
 	if err!=nil {
@@ -102,22 +102,22 @@ func (c *customer) Updated(ctx context.Context,t model.Customer)(model.Customer,
 			Address: cus.Address,
 			UpdatedAt: time.Now().UTC(),
 		} 
-		if err :=c.repo.Updated(ctx,updated);err!=nil {
+		if err :=c.repo.Update(ctx,updated);err!=nil {
 			return err
 		}
 		var err error
 		out, err = c.repo.Get(ctx,t.ID)
 		return err
 	}); err!=nil {
-		return	model.Customer{},nil
+		return	model.Customer{},err
 	}
 	c.logger.Info("cliente actualizado","customer_id",t.ID)
 	return out,nil
 }
 
 
-func (c *customer) Deleted(ctx context.Context,id string)error  {
-	if err:=c.repo.Deleted(ctx,id);err!=nil {
+func (c *customer) Delete(ctx context.Context,id string)error  {
+	if err:=c.repo.Delete(ctx,id);err!=nil {
 		return err
 	}	
 	c.logger.WithContext(ctx).Info("cliente eliminado","cliente_id",id)

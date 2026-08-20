@@ -11,8 +11,8 @@ type Customer interface {
 	Create(ctx context.Context,c model.Customer) error
 	List(ctx context.Context)([]model.Customer,error)
 	Get(ctx context.Context,id string)(model.Customer,error)
-	Updated(ctx context.Context,c model.Customer) error
-	Deleted(ctx context.Context, id string) error
+	Update(ctx context.Context,c model.Customer) error
+	Delete(ctx context.Context, id string) error
 
 }
 
@@ -72,7 +72,7 @@ func (c *customer)Get(ctx context.Context,id string) (model.Customer, error)  {
 	return row,nil
 }
 
-func (c *customer)Updated(ctx context.Context,t model.Customer) error  {
+func (c *customer)Update(ctx context.Context,t model.Customer) error  {
 	const q=`UPDATE customers SET name=?,lastname=?,cellphone=?,email=?,address=?,updated_at=? WHERE id=?`
 
 	_,err := c.db.GetExecutor(ctx).Exec(ctx,q,t.Name,t.LastName,t.CellPhone,t.Email,t.Address,t.UpdatedAt)
@@ -82,7 +82,7 @@ func (c *customer)Updated(ctx context.Context,t model.Customer) error  {
 	return nil
 }
 
-func (c *customer)Deleted(ctx context.Context, id string)error  {
+func (c *customer)Delete(ctx context.Context, id string)error  {
 	const q =`DELETE FROM customers WHERE id=?`
 
 	res,err := c.db.GetExecutor(ctx).Exec(ctx,q,id)
