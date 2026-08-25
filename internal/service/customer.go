@@ -19,12 +19,11 @@ import (
 //recibe y regresa model.customer y nada de customer.dto
 
 type Customer interface{
-	Create(ctx context.Context, t model.Customer)(model.Customer,error)
+	Create(ctx context.Context, t model.Customer, plainPassword string)(model.Customer,error)
 	List(ctx context.Context)([]model.Customer,error)
 	Get(ctx context.Context, id string)(model.Customer, error)
 	Update(ctx context.Context,t model.Customer)(model.Customer,error)
 	Delete(ctx context.Context,id string)error
-
 }
 
 type customer struct{
@@ -39,12 +38,18 @@ func NewCustomer(logger logging.Logger,repo repository.Customer,pos postgres.Uni
 	return &customer{logger: logger, repo: repo, pos: pos}
 }
 
-func (c *customer) Create(ctx context.Context, t model.Customer)(model.Customer, error)  {
+func (c *customer) Create(ctx context.Context, t model.Customer, plainPassword string)(model.Customer, error)  {
 	 cus,err:=CleanInput(t)
 
 	 if err!=nil {
 		return model.Customer{},err
 	 }
+
+	 hash,err:=util.HasPassword(plainPassword)
+
+	if err!=nil {
+		return model.Customer{}, err
+	}
 
 	 now :=time.Now().UTC()
 	 custom := model.Customer{
@@ -54,6 +59,7 @@ func (c *customer) Create(ctx context.Context, t model.Customer)(model.Customer,
 		CellPhone: cus.CellPhone,
 		Email: cus.Email,
 		Address: cus.Address,
+		PasswordHash: hash,
 		CreatedAt: now,
 		UpdatedAt: now,
 	 }

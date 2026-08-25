@@ -40,11 +40,6 @@ type customer struct {
 }
 
 //variable descartable
-//esta variable es descartable ya que nunca se declara por eso el (_) //nos sirvr para avisarnos si algun metodo de la interfaz nos falto por eso
-//es de tipo customer que es un puntero de valor nulo
-
-//tambien nos avisa si no esta correcto los parametros y returns de la funcion o si no coinciden con los que declaramos en la interface  
-
 var _ Customer = (*customer)(nil) 
 
 //funcion constructora  recibe las herramientas que requieren dependencias externas para trabajar  
@@ -54,23 +49,26 @@ func NewCustomer(logger logging.Logger, validator valid.Validator, svc service.C
 	return &customer{logger: logger, validator: validator, svc: svc}
 }
 
-//Funcion que crea un customer en este caso recibimos un cuerpo (body) que necesitamops verificar que venga bien
+// Create utiliza httputil.Handle como adaptador para manejar automáticamente la petición HTTP. Primero toma el JSON que llega en el body y lo convierte
+// en un dto.CreateTodo. Después valida ese DTO utilizando las validaciones definidas en sus tags. Si todo es correcto, ejecuta la función que recibe
+// el DTO, llama al servicio y finalmente convierte el resultado en una respuesta JSON.
+
+//importante
+//httputil.Handle no regresa automaticamente con HHTP 200 ok cuando la funcion  termina correctamente
 
 func (h *customer) Create(w http.ResponseWriter, r *http.Request) {
-	//con el http.handle internamente verifica, valida si esta correcto y cumple con la estructura requerida para un cliente 
-	//dentro de esta se crea una funcion anonima sin nombre donde se le pasa el contexto, y el objeto de transferencia y asu vez
-	//returnamos el objeto o un error 
+
 	httputil.Handle(h.validator, h.logger, func(ctx context.Context, in dto.CreateCustomer) (dto.Customer, error) {
-		//aqui le pasamos a la funcion create del service lo que seria el contexto y in convertido en model.customer
-		c, err := h.svc.Create(ctx, in.Tomodel())
-		//si al recibir esos parametros la funcion create realiza lo que tiene que hacer y devuelve un err en la variable err se manipula 
+	
+		c, err := h.svc.Create(ctx, in.Tomodel(), in.Password)
+		
 		if err != nil {
-			//si hubo error se regresa el dto.customer el struct  vacio y el error que se encontro
+			
 			return dto.Customer{}, err
 		}
-		//si no hubo error se regresa la funcion FromCustomer del dto, con los datos que regreso la funcion create 
+		
 		return dto.FromCustomer(c), nil
-	})(w, r)//aqui hace funcionar la funcion que creo handle y le pasamos los parametros que necesita 
+	})(w, r)
 }
 
 func (h *customer) List(w http.ResponseWriter, r *http.Request) {
@@ -91,37 +89,30 @@ func (h *customer) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	httputil.JSON(w, http.StatusOK, dto.FromCustomer(c))
 }
-
+//funcion Update que valida , verifica a mano 
 func (h *customer) Update(w http.ResponseWriter, r *http.Request) {
-	//creamos la variable donde guardara el JSON de la peticion que sea valido
+	
 	var in dto.UpdatedCustomer
-		//aqui verificamos que ese json este bien con el json.NewDecoder pasandole el body(cuerpoJson) despues y se 
-	// lo paso a la direccion de variable 
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
-		//si al momento de verificar el json esta mal cachamos el error en la variable err y despues lo mostramos 
-		// con un mensaje todo esto con httputil. Error que es del framework
+		
 		httputil.Error(h.logger, w, r, xerrors.Wrap(xerrors.ErrInvalidInput, "JSON invalid", err))
 		return
 	}
-	//si no hubo un error, validamos el json con el struct que esta en dto, si en dado caso le falta un dato que es validate:"required"
-	//entnces cachamos el error dentro de err y lo manejamos mostrando el error 
 	if err := h.validator.Struct(in); err != nil {
 		httputil.Error(h.logger, w, r, err)
 		return
 	}
-	//si todo sale bien y cumple con el cuerpo y la validacion, ahora sacamos el id del cliente de la ruta con chi.URLParam() y se lo pasa al metodo
-	//in.Tomodel para crear el model.Customer  y despues esos datos se los pasamos al servicio en el metodo UPDATE que recibe 
-	// un contexto y un model.Customer 
+	
 	c, err := h.svc.Update(r.Context(), in.Tomodel(chi.URLParam(r, "id")))
-	//ahora ese metodo del service regresa un error si por alguna razon no logro realizar la logica de negocio y se majera en la variable err
+
 	if err != nil {
 		httputil.Error(h.logger, w, r, err)
 		return
 	}
-	//si no hubi un error se regresa un status Ok y de returna un slices de ese cliente que se actualizo  ya que dto.FromCustomer()recibe un 
-	//model customer
+	
 	httputil.JSON(w,http.StatusOK,dto.FromCustomer(c))
 }
+
 //funcion Delete con PointerReceiver que pertenece al struct custome 
 func (h *customer) Delete(w http.ResponseWriter, r *http.Request) {
 	//en este caso como no hay un cuerpo por peticion json, si no que tenemos que sacar el id de la url de la peticion

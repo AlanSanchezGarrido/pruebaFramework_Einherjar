@@ -1,3 +1,5 @@
+//
+
 package repository
 
 import (
@@ -16,11 +18,21 @@ var(
 	c 	model.Customer
 )
 
-if err := s.Scan(&c.ID,&c.Name,&c.LastName,&c.CellPhone,&c.CellPhone,&c.Email,&c.Address,&c.CreatedAt,&c.UpdatedAt);err!=nil {
+if err := s.Scan(&c.ID,&c.Name,&c.LastName,&c.CellPhone,&c.Email,&c.Address,&c.CreatedAt,&c.UpdatedAt);err!=nil {
 	return model.Customer{},err
 }
 return c,nil
 }
+
+
+func scanCustomerWithCustomer(s scanner) (model.Customer,error)  {
+	var c  model.Customer
+	if err:= s.Scan(&c.ID,&c.Name,&c.LastName,&c.CellPhone,&c.Email,&c.Address,&c.PasswordHash,&c.CreatedAt,&c.UpdatedAt);err!=nil {
+		return model.Customer{},err 
+	}
+	return c,nil
+}
+
 //actua al intentar eliminar o actualizar un registro si existe el cliente con el id que se recibe
 //postgres no avisa si existe el cliente entonces por eso se crea esta funcion 
 func requireOneRow(tag pgconn.CommandTag, id string) error {

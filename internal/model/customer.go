@@ -9,6 +9,7 @@ type Customer struct {
 	CellPhone string
 	Email     string
 	Address    string
+	PasswordHash string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
