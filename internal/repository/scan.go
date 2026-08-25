@@ -1,4 +1,5 @@
-//
+//Scan es el puente que transfiere y convierte los datos desde una fila de base de datos hacia variables vivas en tu codigo
+//entonces al momento de hacer una consulta sql pasa los datos que manda la consulta que son crudos al modelo que creamos (customer)
 
 package repository
 
