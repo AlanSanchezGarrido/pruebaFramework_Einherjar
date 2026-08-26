@@ -22,14 +22,14 @@ type shopping struct{
 
 var _ Shopping=(*shopping)(nil)
 
-func (*shopping)NewShopping(pos postgres.Provider) Shopping {
+func NewShopping(pos postgres.Provider) Shopping {
 	return &shopping{pos: pos}
 }
 //Funcion para crear una compra enlasada con un cliente
 func (c *shopping)Create(ctx context.Context,s model.Shopping)error  {
-	const q = `INSERT INTO (id,total,article,customer_id,create_at,update_at) VALUES ($1,$2,$3,$4,$5,$6)`
+	const q = `INSERT INTO shopping (id,total,article,customer_id,create_at,update_at) VALUES ($1,$2,$3,$4,$5,$6)`
 
-	_,err:=c.pos.GetExecutor(ctx).Exec(ctx,q,s.ID,s.Total,s.Article,s.Customer_id,s.Create_At,s.Update_At)
+	_,err:=c.pos.GetExecutor(ctx).Exec(ctx,q,s.ID,s.Total,s.Article,s.CustomerID,s.CreatedAt,s.UpdatedAt)
 
 	if err!=nil {
 		return c.pos.HandleError(err)
@@ -76,7 +76,7 @@ func (c *shopping)Get(ctx context.Context,id string)(model.Shopping,error){
 func (c *shopping)Update(ctx context.Context,s model.Shopping)error {
 	const q=`UPDATE shopping SET total=$1,article=$2,update_at=$3 WHERE id=$4`
 
-	res,err:=c.pos.GetExecutor(ctx).Exec(ctx,q,s.Total,s.Article,s.Update_At,s.ID)
+	res,err:=c.pos.GetExecutor(ctx).Exec(ctx,q,s.Total,s.Article,s.UpdatedAt,s.ID)
 
 	if err!=nil {
 		return c.pos.HandleError(err)
@@ -95,25 +95,25 @@ func (c *shopping)Delete(ctx context.Context,id string)error  {
 	return  requireOneRow(t,id)
 }
 
-func (c *shopping)ListByCustomer(ctx context.Context,cusomerid string)([]model.Shopping,error)  {
-	const q =  `SELECT id,customer_id,total,created_at,updated_at FROM compras WHERE customer_id=$1 ORDER BY created_at DESC`
-	rows,err:=c.pos.GetExecutor(ctx).Query(ctx,q,cusomerid)
+func (c *shopping) ListByCustomer(ctx context.Context, customerID string) ([]model.Shopping, error) {
+	const q = `SELECT id,total,article,customer_id,created_at,updated_at FROM shopping WHERE customer_id=$1 ORDER BY created_at DESC`
 
-	if err!=nil {
-		return nil,c.pos.HandleError(err)
+	rows, err := c.pos.GetExecutor(ctx).Query(ctx, q, customerID)
+	if err != nil {
+		return nil, c.pos.HandleError(err)
 	}
 	defer rows.Close()
 
-	chopings :=[]model.Shopping{}
-	for rows.Next(){
-		t,err := scanCompra(rows)
-		if err!=nil {
-			return nil,c.pos.HandleError(err)
+	out := []model.Shopping{}
+	for rows.Next() {
+		s, err := scanCompra(rows)
+		if err != nil {
+			return nil, c.pos.HandleError(err)
 		}
-		chopings = append(chopings,t)
-	} 
-	if err:=rows.Err();err!=nil {
-		return nil,c.pos.HandleError(err)
+		out = append(out, s)
 	}
-	return chopings,nil
+	if err := rows.Err(); err != nil {
+		return nil, c.pos.HandleError(err)
+	}
+	return out, nil
 }

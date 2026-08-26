@@ -3,10 +3,10 @@ package model
 import "time"
 
 type Shopping struct {
-	ID          string
-	Total       string
-	Article     string
-	Customer_id string
-	Create_At   time.Time
-	Update_At   time.Time
+	ID         string
+	Total      float64
+	Article    string
+	CustomerID string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
