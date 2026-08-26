@@ -43,6 +43,8 @@ type UpdatedCustomer struct {
 func (r UpdatedCustomer) Tomodel(id string) model.Customer {
 	return model.Customer{ID: id, Name: r.Name, LastName: r.LastName, CellPhone: r.CellPhone, Email: r.Email, Address: r.Address}
 }
+
+
 //estructura de respuesta Json al crean un cliente nuevo
 type Customer struct {
 	ID        string    `json:"id"`
