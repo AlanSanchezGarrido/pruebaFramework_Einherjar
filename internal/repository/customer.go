@@ -57,6 +57,7 @@ func(c *customer)List(ctx context.Context)([]model.Customer,error) {
 		}
 		out = append(out, t)
 	}
+	
 	return out,nil
 }
 
