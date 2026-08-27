@@ -1,12 +1,13 @@
 package identity
 
 import (
-	"clientes-api/internal/repository"
+	"clientes-api/internal/customer/repository"
 	"context"
 
 	"code.nochebuena.dev/einherjar/auth/authmw"
 	"code.nochebuena.dev/einherjar/contracts/security"
 )
+
 //estructura guarda una conexcion a mi repository  de clientes  para poder ir a buscar los datos completos del cliente
 //a PostgresAQL en cuanto se valida el JWT, entonces tiene las herramientas necesarias para buscar los datos del usuairo
 // autenticarlo y cargarlos en la memoria de la peticion

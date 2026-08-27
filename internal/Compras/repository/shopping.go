@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"clientes-api/internal/model"
+	"clientes-api/internal/Compras/model"
 	"context"
 
 	postgres "code.nochebuena.dev/einherjar/db-postgres"
@@ -26,12 +26,10 @@ func NewShopping(pos postgres.Provider) Shopping {
 	return &shopping{pos: pos}
 }
 //Funcion para crear una compra enlasada con un cliente
-func (c *shopping)Create(ctx context.Context,s model.Shopping)error  {
-	const q = `INSERT INTO shopping (id,total,article,customer_id,create_at,update_at) VALUES ($1,$2,$3,$4,$5,$6)`
-
-	_,err:=c.pos.GetExecutor(ctx).Exec(ctx,q,s.ID,s.Total,s.Article,s.CustomerID,s.CreatedAt,s.UpdatedAt)
-
-	if err!=nil {
+func (c *shopping) Create(ctx context.Context, s model.Shopping) error {
+	const q = `INSERT INTO shopping (id,total,article,customer_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)`
+	_, err := c.pos.GetExecutor(ctx).Exec(ctx, q, s.ID, s.Total, s.Article, s.CustomerID, s.CreatedAt, s.UpdatedAt)
+	if err != nil {
 		return c.pos.HandleError(err)
 	}
 	return nil
@@ -39,8 +37,7 @@ func (c *shopping)Create(ctx context.Context,s model.Shopping)error  {
 
 
 func (c *shopping)List(ctx context.Context)([]model.Shopping,error)  {
-	const q = `SELECT id,total,article,customer_id,create_at,update_at From shopping`
-	
+	const q = `SELECT id,total,article,customer_id,created_at,updated_at From shopping`
 	rows,err:=c.pos.GetExecutor(ctx).Query(ctx,q)
 	if err!= nil {
 		return nil,c.pos.HandleError(err)
@@ -64,7 +61,7 @@ func (c *shopping)List(ctx context.Context)([]model.Shopping,error)  {
 }
 
 func (c *shopping)Get(ctx context.Context,id string)(model.Shopping,error){
-	const q =`SELECT id,total,article,customer_id,create_at,update_at From shopping WHERE id=$1`
+	const q =`SELECT id,total,article,customer_id,created_at,updated_at FROM shopping WHERE id=$1`
 
 	t,err:=scanCompra(c.pos.GetExecutor(ctx).QueryRow(ctx,q,id))
 	if err!=nil {

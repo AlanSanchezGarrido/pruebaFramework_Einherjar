@@ -1,19 +1,19 @@
 package dto
 
 import (
-	"clientes-api/internal/model"
+	"clientes-api/internal/Compras/model"
 	"time"
 )
 
 // structura de json para crear una compra
 type RegisterShopping struct {
-	Total   string `json:"total" validate:"required"`
+	Total   float64 `json:"total" validate:"required"`
 	Article string `json:"article" validate:"required"`
 }
 
 // estructura json para actualizar una compra
 type UpdatedShopping struct {
-	Total   string `json:"total" validate:"required"`
+	Total   float64 `json:"total" validate:"required"`
 	Article string `json:"article" validate:"required"`
 }
 

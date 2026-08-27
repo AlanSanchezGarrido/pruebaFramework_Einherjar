@@ -3,9 +3,9 @@
 package service
 
 import (
-	"clientes-api/internal/model"
-	"clientes-api/internal/repository"
-	"clientes-api/internal/util"
+	"clientes-api/internal/customer/model"
+	"clientes-api/internal/customer/repository"
+	"clientes-api/internal/customer/util"
 	"context"
 	"strings"
 	"time"

@@ -8,7 +8,7 @@
 package dto
 
 import (
-	"clientes-api/internal/model"
+	"clientes-api/internal/customer/model"
 	"time"
 )
 
@@ -21,7 +21,7 @@ type CreateCustomer struct {
 	Name      string `json:"name" validate:"required"`
 	LastName  string `json:"lastname" validate:"required"`
 	CellPhone string `json:"cellphone" validate:"required"`
-	Email     string `json:"email" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
 	Address   string `json:"address" validate:"required"`
 	Password  string `json:"password" validate:"required,min=8"`
 }
@@ -36,7 +36,7 @@ type UpdatedCustomer struct {
 	Name      string `json:"name" validate:"required"`
 	LastName  string `json:"lastname" validate:"required"`
 	CellPhone string `json:"cellphone" validate:"required"`
-	Email     string `json:"email" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
 	Address   string `json:"address" validate:"required"`
 }
 

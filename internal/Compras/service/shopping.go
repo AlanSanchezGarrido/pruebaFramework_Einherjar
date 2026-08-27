@@ -1,9 +1,9 @@
 package service
 
 import (
-	"clientes-api/internal/model"
-	"clientes-api/internal/repository"
-	"clientes-api/internal/util"
+	"clientes-api/internal/Compras/model"
+	"clientes-api/internal/Compras/repository"
+	"clientes-api/internal/Compras/util"
 	"context"
 	"time"
 
@@ -70,14 +70,13 @@ func (c *shopping) Get(ctx context.Context, id string) (model.Shopping, error) {
 		return model.Shopping{}, err
 	}
 
-	if chop.CustomerID == identity.UID {
+	if chop.CustomerID != identity.UID {
 		return model.Shopping{}, xerrors.NotFound("compra %s no existe", id)
 	}
-
 	return chop, nil
 }
 
-func (s *shopping) Update(ctx context.Context, id string,total float64,article string) (model.Shopping, error) {
+func (s *shopping) Update(ctx context.Context, id string, total float64, article string) (model.Shopping, error) {
 	// La verificación de ownership (vía Get) va ANTES de la transacción -
 	// es solo una lectura, no necesita estar dentro del "todo o nada".
 	current, err := s.Get(ctx, id)

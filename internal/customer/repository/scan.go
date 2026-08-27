@@ -4,7 +4,7 @@
 package repository
 
 import (
-	"clientes-api/internal/model"
+	"clientes-api/internal/customer/model"
 
 	"code.nochebuena.dev/einherjar/core/xerrors"
 	"github.com/jackc/pgx/v5/pgconn"

@@ -7,8 +7,8 @@
 package handler
 
 import (
-	"clientes-api/internal/dto"
-	"clientes-api/internal/service"
+	"clientes-api/internal/customer/dto"
+	"clientes-api/internal/customer/service"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -19,7 +19,8 @@ import (
 	"code.nochebuena.dev/einherjar/web/httputil"
 	"github.com/go-chi/chi/v5"
 )
-//interface que contiene todos los metodos del contrato 
+
+//interface que contiene todos los metodos del contrato
 //entonces todos los que quieran pertenecer a esta interface necesitan contener o utilizar estos metodos
 type Customer interface {
 	Create(w http.ResponseWriter, r *http.Request)

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"clientes-api/internal/model"
+	"clientes-api/internal/customer/model"
 	"context"
 
 	postgres "code.nochebuena.dev/einherjar/db-postgres"
@@ -96,19 +96,17 @@ func (c *customer)Delete(ctx context.Context, id string)error  {
 }
 
 //funcion para verificar el email con el cual se realizara el inicio de sesion 
-func (c *customer) FindByEmail(ctx context.Context, email string) (model.Customer,error){
-	const q = `SELECT id,name,lastname,name,cellphone,address,password_hash,created_at,updated_at FROM customers WHERE email=$1`
+func (c *customer) FindByEmail(ctx context.Context, email string) (model.Customer, error) {
+	const q = `SELECT id, name, lastname, cellphone, email, address, password_hash, created_at, updated_at FROM customers WHERE email=$1`
 
-	row,err:=scanCustomerWithCustomer(c.db.GetExecutor(ctx).QueryRow(ctx,q,email))
+	row, err := scanCustomerWithCustomer(c.db.GetExecutor(ctx).QueryRow(ctx, q, email))
 
-	if err!=nil {
-		return model.Customer{},c.db.HandleError(err)
+	if err != nil {
+		return model.Customer{}, c.db.HandleError(err)
 	}
 
-	return row,nil
+	return row, nil
 }
-
-
 
 
 
