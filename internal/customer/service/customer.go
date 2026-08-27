@@ -1,5 +1,5 @@
 // services vive toda la ogica del negocio, no conoce que es sql, no conoce las bases de datos., ni conoce lo que es
-// HTTP status code , entonces solo habla con model osea el modelo
+// HTTP status code , entonces solo habla con model osea el model.customer
 package service
 
 import (
@@ -34,6 +34,7 @@ type customer struct{
 
 var _ Customer= (*customer)(nil)
 
+//recibe repository.customer (interfaz), no el struct
 func NewCustomer(logger logging.Logger,repo repository.Customer,pos postgres.UnitOfWork) Customer {
 	return &customer{logger: logger, repo: repo, pos: pos}
 }
@@ -67,8 +68,9 @@ func (c *customer) Create(ctx context.Context, t model.Customer, plainPassword s
 	if err := c.repo.Create(ctx,custom);err!=nil {
 		return model.Customer{},err
 	}
-
-	c.logger.Info("Customer creado","customer_id",custom.ID)
+    // WithContext arrastra el request_id que puso el middleware, así el log de
+	// negocio y el de transporte se corresponden en la misma línea de tiempo.
+	c.logger.WithContext(ctx).Info("Customer creado","customer_id",custom.ID)
 	return custom,nil
 }
 
@@ -117,7 +119,8 @@ func (c *customer) Update(ctx context.Context,t model.Customer)(model.Customer, 
 	}); err!=nil {
 		return	model.Customer{},err
 	}
-	c.logger.Info("cliente actualizado","customer_id",t.ID)
+
+	c.logger.WithContext(ctx).Info("cliente actualizado","customer_id",t.ID)
 	return out,nil
 }
 
@@ -131,7 +134,9 @@ func (c *customer) Delete(ctx context.Context,id string)error  {
 }
 
 
-
+// cleanTitle es la regla que `validate:"required"` no puede expresar: un título
+// de puros espacios pasa el tag pero no es un título. Validación de forma la hace
+// core/valid en el borde; validación de negocio vive aquí.
 func CleanInput(t model.Customer)(model.Customer,error)  {
 	name:= strings.TrimSpace(t.Name)
 	lastname:= strings.TrimSpace(t.LastName)

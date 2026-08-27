@@ -75,7 +75,8 @@ type CustomerList struct {
 	Count    int        `json:"count"`
 }
 
-//
+// FromTodos usa make con len 0 y no var: un slice nil se serializa como null, y
+// la llave todos tiene que traer [] cuando no hay nada, no null.
 func FromCustomers(cs []model.Customer) CustomerList {
 	customers := make([]Customer, 0, len(cs))
 	for _, v := range cs {

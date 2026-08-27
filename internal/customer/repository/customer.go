@@ -1,3 +1,5 @@
+//repository la unica capa que sabe que SQL. recibe y regresa model.customer
+
 package repository
 
 import (
@@ -6,7 +8,7 @@ import (
 
 	postgres "code.nochebuena.dev/einherjar/db-postgres"
 )
-
+//contrato de persistencia. Lo consume service.customer, que solo conoce esta interfaz 
 type Customer interface {
 	Create(ctx context.Context,c model.Customer) error
 	List(ctx context.Context)([]model.Customer,error)
@@ -15,22 +17,28 @@ type Customer interface {
 	Delete(ctx context.Context, id string) error
 	FindByEmail (ctx context.Context,email string)(model.Customer,error)
 }
-
+//estructra que implementa la interfaz contiene el campo de la interfaz de del paquete db-postgres
 type customer struct{
 	db postgres.Provider
 }
 
+//Falla en tiempo de compilacion si customer deja de cumplir el contrato(si falta un metodo)
 var _ Customer = (*customer)(nil) 
-
+//NewCustomer recibe postgres.Provider, entonces el repositori solo necesita ejecutar queries,
+//no arrancar ni apagar la bd
 func NewCustomer(db postgres.Provider) Customer {
 	return &customer{db: db}
 }
 
+
 func (c *customer)Create(ctx context.Context, t model.Customer)error  {
 	const q = `INSERT INTO customers (id,name,lastname,cellphone,email,address,password_hash,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`
-
+    // GetExecutor regresa la transacción activa si venimos dentro de un
+	// UnitOfWork, o el pool si no. El repository no decide eso ni le importa.
 	_,err := c.db.GetExecutor(ctx).Exec(ctx,q,t.ID,t.Name,t.LastName,t.CellPhone,t.Email,t.Address,t.PasswordHash,t.CreatedAt,t.UpdatedAt)
 	if err!= nil {
+		//HandlerError traduce codigo de postgres a xerros:UNIQUE → ErrAlreadyExists,
+		//// sql.ErrNoRows → ErrNotFound, etc. httputil los mapea al status HTTP correcto.
 		return c.db.HandleError(err)
 	}
 	return nil
@@ -44,9 +52,9 @@ func(c *customer)List(ctx context.Context)([]model.Customer,error) {
 	if err!= nil {
 		return nil,c.db.HandleError(err)
 	}
-
+    //Cerramos y liberamos los datos despues de que la funcion actual termine 
 	defer rows.Close()
-
+    // Slice inicializado, no nil: así la API responde [] y no null cuando no hay nada.
 	out := []model.Customer{}
 
 	for rows.Next(){
@@ -57,8 +65,11 @@ func(c *customer)List(ctx context.Context)([]model.Customer,error) {
 		}
 		out = append(out, t)
 	}
-	
-	return out,nil
+	// rows.Err() atrapa el error que rows.Next() se traga al regresar false.
+	if err := rows.Err(); err != nil {
+		return nil, c.db.HandleError(err)
+	}
+	return out, nil
 }
 
 func (c *customer)Get(ctx context.Context,id string) (model.Customer, error)  {
@@ -67,6 +78,7 @@ func (c *customer)Get(ctx context.Context,id string) (model.Customer, error)  {
 	row,err := scanCustomer(c.db.GetExecutor(ctx).QueryRow(ctx,q,id))
 
 	if err!=nil {
+		// sql.ErrNoRows sale de aquí como ErrNotFound → 404, sin un if extra.
 		return model.Customer{},c.db.HandleError(err)
 	}
 

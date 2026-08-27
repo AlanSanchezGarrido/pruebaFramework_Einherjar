@@ -1,5 +1,6 @@
-//handler es la cpa de transporte: traduce HTTP allamadasde service y de regreso, aqui cice lo unico que sabe que es un
-// statuscode o un JSON bosy
+// Package handler es la capa de transporte: traduce HTTP a llamadas de service y
+// de regreso. Aquí vive lo único que sabe qué es un status code o un JSON body.
+//
 
 //Es el equivalnete al @RestController de sprint: una funcion por endpoint , cero reglas de negocio dentro. Recibe dto, lo pasa model
 //con los mappers de dto, llama alservice y devueve dto
@@ -37,7 +38,7 @@ type customer struct {
 	logger    logging.Logger //registro de eventos Una libreta de registros para anotar qué operaciones se hicieron (logger).
 	validator valid.Validator //validador de datos //Campo que guarda el motor de validación para revisar si los datos recibidos cumplen las reglas del DTO.
 	svc       service.Customer //conexcion con la logica de negocios //Campo que guarda la interfaz del Service, 
-	//							permitiéndole al handler comunicarse con la lógica de negocio sin saber nada de bases de datos directas.
+	//						permitiéndole al handler comunicarse con la lógica de negocio sin saber nada de bases de datos directas.
 }
 
 //variable descartable
@@ -71,6 +72,10 @@ func (h *customer) Create(w http.ResponseWriter, r *http.Request) {
 		return dto.FromCustomer(c), nil
 	})(w, r)
 }
+// List usa HandleNoBody: sin body de entrada, no hay nada que validar.
+//
+// Regresa dto.customerlist, no []dto.customer: la respuesta es un objeto con la llave
+// todos adentro, nunca un arreglo pelón en la raíz. El porqué está en dto/customer.go.
 
 func (h *customer) List(w http.ResponseWriter, r *http.Request) {
 	httputil.HandleNoBody(h.logger, func(ctx context.Context) (dto.CustomerList, error) {
@@ -82,15 +87,22 @@ func (h *customer) List(w http.ResponseWriter, r *http.Request) {
 	})(w, r)
 }
 
+// Get ya no cabe en un adaptador genérico: el id viene en la ruta, no en el body.
+// Ese es el escape hatch — httputil.Error y httputil.JSON dan el mismo formato de
+// respuesta y el mismo logging que los adaptadores, solo que a mano.
 func (h *customer) Get(w http.ResponseWriter, r *http.Request) {
 	c, err := h.svc.Get(r.Context(), chi.URLParam(r, "id"))
 	if err != nil {
+		// Nunca inventen el status: el error ya trae su código (ErrNotFound → 404)
+		// y httputil.Error lo traduce y lo loguea una sola vez, al nivel correcto.
 		httputil.Error(h.logger, w, r, err)
 		return
 	}
 	httputil.JSON(w, http.StatusOK, dto.FromCustomer(c))
 }
-//funcion Update que valida , verifica a mano 
+// Update mezcla las dos cosas: id en la ruta y body en el request, así que hace a
+// mano lo que httputil.Handle haría solo — decodificar, validar, llamar, encodear.
+// Aquí sí se elige el status, porque httputil.JSON lo recibe como parámetro.
 func (h *customer) Update(w http.ResponseWriter, r *http.Request) {
 	
 	var in dto.UpdatedCustomer
